@@ -1,0 +1,8 @@
+#!/bin/bash -e
+# Create ssh keys for gitlab
+
+. /etc/default/inithooks
+
+echo "* Regenerating snakeoil certs"
+
+make-ssl-cert generate-default-snakeoil --force-overwrite

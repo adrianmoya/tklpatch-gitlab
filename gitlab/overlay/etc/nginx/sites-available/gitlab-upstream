@@ -1,0 +1,3 @@
+upstream gitlab {
+    server unix:/home/gitlab/gitlab/tmp/sockets/gitlab.socket;
+}

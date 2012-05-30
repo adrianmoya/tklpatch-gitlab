@@ -81,6 +81,7 @@ pip install passlib
 cd /home/gitlab
 sudo -H -u gitlab git clone git://github.com/gitlabhq/gitlabhq.git gitlab
 cd gitlab
+git checkout tags/v2.5.0
 sudo -u gitlab cp config/gitlab.yml.example config/gitlab.yml
 sed -i 's/gitlabhq.com/gitlab/' config/gitlab.yml
 IP=`ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}'`
@@ -106,7 +107,11 @@ sudo -u gitlab bundle exec unicorn_rails -c config/unicorn.rb -E production -D
 
 #Nginx
 sed -i "s/YOUR_SERVER_IP/$IP/" /etc/nginx/sites-available/gitlab
+sed -i "s/YOUR_SERVER_IP/$IP/" /etc/nginx/sites-available/gitlab-ssl
+rm /etc/nginx/sites-enabled/default
+ln -s /etc/nginx/sites-available/gitlab /etc/nginx/sites-enabled/gitlab-upstream
 ln -s /etc/nginx/sites-available/gitlab /etc/nginx/sites-enabled/gitlab
+ln -s /etc/nginx/sites-available/gitlab-ssl /etc/nginx/sites-enabled/gitlab-ssl
 
 #Init script
 chmod +x /etc/init.d/gitlab
