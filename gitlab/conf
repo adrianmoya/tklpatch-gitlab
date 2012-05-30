@@ -1,0 +1,117 @@
+#!/bin/bash -ex
+# By Adrian Moya <adrian@turnkeylinux.org> 2012
+
+# Update apt-get
+apt-get update
+
+# Install curl
+apt-get install -y git-core curl gcc checkinstall libxml2-dev libxslt1-dev libcurl4-openssl-dev libreadline5-dev \
+	libc6-dev libssl-dev libmysql++-dev make build-essential libicu-dev redis-server openssh-server \
+	python-dev python-pip sudo mysql-server mysql-client libmysqlclient-dev sqlite3 libsqlite3-dev nginx postfix
+
+# Set Hostname
+HOSTNAME=gitlab
+echo "$HOSTNAME" > /etc/hostname
+sed -i "s|127.0.1.1 \(.*\)|127.0.1.1 $HOSTNAME|" /etc/hosts
+
+#Install ruby 1.9.2
+wget http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.2-p290.tar.gz
+tar xzfv ruby-1.9.2-p290.tar.gz
+cd ruby-1.9.2-p290
+./configure
+make
+make install
+#clean
+cd ..
+rm ruby-1.9.2-p290.tar.gz
+rm -Rf ruby-1.9.2-p290
+
+#Update rubygem
+wget http://production.cf.rubygems.org/rubygems/rubygems-1.8.24.tgz
+tar xvzf rubygems-1.8.24.tgz
+cd rubygems-1.8.24
+ruby setup.rb
+#clean
+cd ..
+rm -Rf rubygems-1.8.24
+rm rubygems-1.8.24.tgz
+
+#Setup users
+adduser \
+  --system \
+  --shell /bin/sh \
+  --gecos 'git version control' \
+  --group \
+  --disabled-password \
+  --home /home/git \
+  git
+
+adduser --disabled-login --gecos 'gitlab system' gitlab
+
+usermod -a -G git gitlab
+
+#Install gitolite
+cd /home/git
+sudo -H -u git git clone git://github.com/gitlabhq/gitolite /home/git/gitolite
+
+sudo -u git sh -c 'echo "PATH=\$PATH:/home/git/bin\nexport PATH" > /home/git/.profile'
+sudo -u git -H -i /home/git/gitolite/src/gl-system-install
+
+sudo -u git -H sed -i 's/0077/0007/g' /home/git/share/gitolite/conf/example.gitolite.rc
+
+mkdir /home/git/repositories
+chmod -R g+rwX /home/git/repositories/
+chown -R git:git /home/git/repositories/
+
+#Create database and database user
+mysqladmin -u root create gitlab
+mysql -u root <<-END_PRIVS
+GRANT ALL PRIVILEGES ON gitlab.* TO gitlab@localhost IDENTIFIED BY "gitlab";
+flush privileges;
+END_PRIVS
+
+#Install required gems
+gem install charlock_holmes
+pip install pygments
+gem install bundler
+pip install py-bcrypt
+pip install passlib
+
+#Install gitlab
+cd /home/gitlab
+sudo -H -u gitlab git clone git://github.com/gitlabhq/gitlabhq.git gitlab
+cd gitlab
+sudo -u gitlab cp config/gitlab.yml.example config/gitlab.yml
+sed -i 's/gitlabhq.com/gitlab/' config/gitlab.yml
+IP=`ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}'`
+sed -i "s/host: localhost/host: $IP/" config/gitlab.yml
+
+#Configure database
+sudo -u gitlab cp config/database.yml.example config/database.yml
+sed -i 's/root/gitlab/' config/database.yml
+sed -i 's/password:\(.*\)/password: gitlab/' config/database.yml
+sed -i 's/gitlabhq_production/gitlab/' config/database.yml
+
+sudo -u gitlab -H bundle install --without development test --deployment
+
+#Next line is to prevent ssh from checking host's key
+sudo -u gitlab sh -c 'echo "Host localhost\n\tStrictHostKeyChecking no\n" >> /home/gitlab/.ssh/config'
+
+sudo -u gitlab bundle exec rake db:setup RAILS_ENV=production
+sudo -u gitlab bundle exec rake db:seed_fu RAILS_ENV=production
+
+#Unicorn
+sudo -u gitlab cp config/unicorn.rb.orig config/unicorn.rb
+sudo -u gitlab bundle exec unicorn_rails -c config/unicorn.rb -E production -D
+
+#Nginx
+sed -i "s/YOUR_SERVER_IP/$IP/" /etc/nginx/sites-available/gitlab
+ln -s /etc/nginx/sites-available/gitlab /etc/nginx/sites-enabled/gitlab
+
+#Init script
+chmod +x /etc/init.d/gitlab
+insserv gitlab
+
+#Stop services
+service nginx stop
+service mysql stop

@@ -1,0 +1,19 @@
+#!/bin/bash -e
+# Create ssh keys for gitlab
+
+. /etc/default/inithooks
+
+echo "* Regenerating SSH cryptographic keys for gitlab user"
+
+sudo -H -u gitlab ssh-keygen -q -N '' -t rsa -f /home/gitlab/.ssh/id_rsa
+cp /home/gitlab/.ssh/id_rsa.pub /home/git/gitlab.pub
+chmod 777 /home/git/gitlab.pub
+
+echo "* finishing gitloite setup"
+
+sudo -u git -H sh -c "PATH=/home/git/bin:$PATH; gl-setup -q /home/git/gitlab.pub"
+
+echo "* finishing gitlab setup"
+cd /home/gitlab/gitlab
+sudo -u gitlab bundle exec rake gitlab:app:enable_automerge RAILS_ENV=production
+
