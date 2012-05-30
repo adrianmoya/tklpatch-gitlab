@@ -1,5 +1,5 @@
 #!/bin/bash -e
-# Create ssh keys for gitlab
+# Regenerate ssl certs for gitlab
 
 . /etc/default/inithooks
 

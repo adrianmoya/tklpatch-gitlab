@@ -1,0 +1,4 @@
+#!/bin/sh -e
+
+#Reconfigure ip
+/usr/lib/inithooks/firstboot.d/35set-gitlab-ip

@@ -1,0 +1,5 @@
+# TurnkeyLinux Patch for gitlab
+
+This tklpatch is aimed to convert tkl-core-12 (based on debian squeeze) to a full installation of [Gitlab](https://github.com/gitlabhq/gitlabhq) v2.5. 
+
+For more information about how to apply this patch, see [TKLPatch documentation](http://www.turnkeylinux.org/docs/tklpatch/apply)

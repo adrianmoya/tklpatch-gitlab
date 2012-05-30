@@ -1,0 +1,15 @@
+#!/bin/bash -e
+# Set ip for gitlab app
+
+. /etc/default/inithooks
+
+IP=`ifconfig  | grep 'inet addr:'| grep -v '127.0.0.1' | cut -d: -f2 | awk '{ print $1}'`
+
+#Nginx
+sed -i "s/server_name \(.*\)/server_name $IP/" /etc/nginx/sites-available/gitlab
+sed -i "s/Host \(.*\)\:/Host $IP\:/" /etc/nginx/sites-available/gitlab
+
+#Gitlab.yml
+ sed -i "s/host: \(.*\)/host: $IP/" /home/gitlab/gitlab/config/gitlab.yml
+
+/etc/init.d/nginx restart

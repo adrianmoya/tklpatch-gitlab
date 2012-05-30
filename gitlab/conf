@@ -9,11 +9,6 @@ apt-get install -y git-core curl gcc checkinstall libxml2-dev libxslt1-dev libcu
 	libc6-dev libssl-dev libmysql++-dev make build-essential libicu-dev redis-server openssh-server \
 	python-dev python-pip sudo mysql-server mysql-client libmysqlclient-dev sqlite3 libsqlite3-dev nginx postfix
 
-# Set Hostname
-HOSTNAME=gitlab
-echo "$HOSTNAME" > /etc/hostname
-sed -i "s|127.0.1.1 \(.*\)|127.0.1.1 $HOSTNAME|" /etc/hosts
-
 #Install ruby 1.9.2
 wget http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.2-p290.tar.gz
 tar xzfv ruby-1.9.2-p290.tar.gz
@@ -106,16 +101,16 @@ sudo -u gitlab cp config/unicorn.rb.orig config/unicorn.rb
 sudo -u gitlab bundle exec unicorn_rails -c config/unicorn.rb -E production -D
 
 #Nginx
-sed -i "s/YOUR_SERVER_IP/$IP/" /etc/nginx/sites-available/gitlab
-sed -i "s/YOUR_SERVER_IP/$IP/" /etc/nginx/sites-available/gitlab-ssl
 rm /etc/nginx/sites-enabled/default
 ln -s /etc/nginx/sites-available/gitlab /etc/nginx/sites-enabled/gitlab
-ln -s /etc/nginx/sites-available/gitlab-ssl /etc/nginx/sites-enabled/gitlab-ssl
-ln -s /etc/nginx/sites-available/gitlab-upstream /etc/nginx/sites-enabled/gitlab-upstream
 
 #Init script
-chmod +x /etc/init.d/gitlab
 insserv gitlab
+
+# Set Hostname
+HOSTNAME=gitlab
+echo "$HOSTNAME" > /etc/hostname
+sed -i "s|127.0.1.1 \(.*\)|127.0.1.1 $HOSTNAME|" /etc/hosts
 
 #Stop services
 service nginx stop
