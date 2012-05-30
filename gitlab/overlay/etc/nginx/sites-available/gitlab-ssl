@@ -4,8 +4,8 @@ server {
     root /home/gitlab/gitlab/public;
 
     ssl  on;
-    ssl_certificate  /etc/ssl/certs/cert.pem;
-    #ssl_certificate_key  cert.key;
+    ssl_certificate  /etc/ssl/certs/ssl-cert-snakeoil.pem;
+    ssl_certificate_key  /etc/ssl/private/ssl-cert-snakeoil.key;
 
     # individual nginx logs for this gitlab vhost
     access_log  /var/log/nginx/gitlab_ssl_access.log;

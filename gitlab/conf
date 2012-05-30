@@ -109,9 +109,9 @@ sudo -u gitlab bundle exec unicorn_rails -c config/unicorn.rb -E production -D
 sed -i "s/YOUR_SERVER_IP/$IP/" /etc/nginx/sites-available/gitlab
 sed -i "s/YOUR_SERVER_IP/$IP/" /etc/nginx/sites-available/gitlab-ssl
 rm /etc/nginx/sites-enabled/default
-ln -s /etc/nginx/sites-available/gitlab /etc/nginx/sites-enabled/gitlab-upstream
 ln -s /etc/nginx/sites-available/gitlab /etc/nginx/sites-enabled/gitlab
 ln -s /etc/nginx/sites-available/gitlab-ssl /etc/nginx/sites-enabled/gitlab-ssl
+ln -s /etc/nginx/sites-available/gitlab-upstream /etc/nginx/sites-enabled/gitlab-upstream
 
 #Init script
 chmod +x /etc/init.d/gitlab
