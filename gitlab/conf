@@ -5,7 +5,7 @@
 apt-get update
 
 # Install curl
-apt-get install -y git-core curl gcc checkinstall libxml2-dev libxslt1-dev libcurl4-openssl-dev libreadline5-dev \
+apt-get install -y curl gcc checkinstall libxml2-dev libxslt1-dev libcurl4-openssl-dev libreadline5-dev \
 	libc6-dev libssl-dev libmysql++-dev make build-essential libicu-dev redis-server openssh-server \
 	python-dev python-pip sudo mysql-server mysql-client libmysqlclient-dev sqlite3 libsqlite3-dev nginx postfix
 
@@ -59,8 +59,7 @@ chmod 777 /home/git/gitlab.pub
 sudo -u git -H sed -i 's/0077/0007/g' /home/git/share/gitolite/conf/example.gitolite.rc
 
 #Next two lines is to prevent ssh from checking host's key
-sudo -u gitlab mkdir /home/gitlab/.ssh
-sudo -u gitlab sh -c 'echo "Host localhost\n\tStrictHostKeyChecking no\n" > /home/gitlab/.ssh/config'
+sudo -u gitlab sh -c 'echo "Host localhost\n\tStrictHostKeyChecking no\n" >> /home/gitlab/.ssh/config'
 sudo -u git -H sh -c "PATH=/home/git/bin:$PATH; gl-setup -q /home/git/gitlab.pub"
 
 mkdir /home/git/repositories
