@@ -52,16 +52,25 @@ sudo -H -u git git clone git://github.com/gitlabhq/gitolite /home/git/gitolite
 sudo -u git sh -c 'echo "PATH=\$PATH:/home/git/bin\nexport PATH" > /home/git/.profile'
 sudo -u git -H -i /home/git/gitolite/src/gl-system-install
 
+sudo -H -u gitlab ssh-keygen -q -N '' -t rsa -f /home/gitlab/.ssh/id_rsa
+cp /home/gitlab/.ssh/id_rsa.pub /home/git/gitlab.pub
+chmod 777 /home/git/gitlab.pub
+
 sudo -u git -H sed -i 's/0077/0007/g' /home/git/share/gitolite/conf/example.gitolite.rc
+
+#Next two lines is to prevent ssh from checking host's key
+sudo -u gitlab mkdir /home/gitlab/.ssh
+sudo -u gitlab sh -c 'echo "Host localhost\n\tStrictHostKeyChecking no\n" > /home/gitlab/.ssh/config'
+sudo -u git -H sh -c "PATH=/home/git/bin:$PATH; gl-setup -q /home/git/gitlab.pub"
 
 mkdir /home/git/repositories
 chmod -R g+rwX /home/git/repositories/
 chown -R git:git /home/git/repositories/
 
 #Create database and database user
-mysqladmin -u root create gitlab
+mysqladmin -u root create gitlabhq_production
 mysql -u root <<-END_PRIVS
-GRANT ALL PRIVILEGES ON gitlab.* TO gitlab@localhost IDENTIFIED BY "gitlab";
+GRANT ALL PRIVILEGES ON gitlabhq_production.* TO gitlab@localhost IDENTIFIED BY "gitlab";
 flush privileges;
 END_PRIVS
 
@@ -86,19 +95,13 @@ sed -i "s/host: localhost/host: $IP/" config/gitlab.yml
 sudo -u gitlab cp config/database.yml.example config/database.yml
 sed -i 's/root/gitlab/' config/database.yml
 sed -i 's/password:\(.*\)/password: gitlab/' config/database.yml
-sed -i 's/gitlabhq_production/gitlab/' config/database.yml
 
+#Finish instalation
 sudo -u gitlab -H bundle install --without development test --deployment
-
-#Next line is to prevent ssh from checking host's key
-sudo -u gitlab sh -c 'echo "Host localhost\n\tStrictHostKeyChecking no\n" >> /home/gitlab/.ssh/config'
-
-sudo -u gitlab bundle exec rake db:setup RAILS_ENV=production
-sudo -u gitlab bundle exec rake db:seed_fu RAILS_ENV=production
+sudo -u gitlab bundle exec rake gitlab:app:setup RAILS_ENV=production
 
 #Unicorn
 sudo -u gitlab cp config/unicorn.rb.orig config/unicorn.rb
-sudo -u gitlab bundle exec unicorn_rails -c config/unicorn.rb -E production -D
 
 #Nginx
 rm /etc/nginx/sites-enabled/default
@@ -113,5 +116,5 @@ echo "$HOSTNAME" > /etc/hostname
 sed -i "s|127.0.1.1 \(.*\)|127.0.1.1 $HOSTNAME|" /etc/hosts
 
 #Stop services
-service nginx stop
-service mysql stop
+/etc/init.d/nginx stop
+/etc/init.d/mysql stop
