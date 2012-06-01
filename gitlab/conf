@@ -116,6 +116,6 @@ sed -i "s|127.0.1.1 \(.*\)|127.0.1.1 $HOSTNAME|" /etc/hosts
 #Stop services
 /etc/init.d/nginx stop
 /etc/init.d/mysql stop
-
+/etc/init.d/redis-server stop
 # Clean apt cache
 apt-get clean

@@ -15,7 +15,11 @@ echo "* Reconfiguring gitolite with new key"
 sudo -u git -H sh -c "PATH=/home/git/bin:$PATH; gl-setup -q /home/git/gitlab.pub"
 
 echo "* Finishing gitlab setup"
-/etc/init.d/gitlab start
+/etc/init.d/redis-server start
+/etc/init.d/mysql start
+/etc/init.d/ssh start
 cd /home/gitlab/gitlab
 sudo -u gitlab bundle exec rake gitlab:app:enable_automerge RAILS_ENV=production
-/etc/init.d/gitlab stop
+/etc/init.d/ssh stop
+/etc/init.d/mysql stop
+/etc/init.d/redis-server stop

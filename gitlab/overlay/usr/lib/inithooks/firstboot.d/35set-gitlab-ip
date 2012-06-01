@@ -12,4 +12,5 @@ sed -i "s/Host \(.*\)\:/Host $IP\:/" /etc/nginx/sites-available/gitlab
 #Gitlab.yml
  sed -i "s/host: \(.*\)/host: $IP/" /home/gitlab/gitlab/config/gitlab.yml
 
+/etc/init.d/gitlab restart > /dev/null 2>&1
 /etc/init.d/nginx restart > /dev/null 2>&1
