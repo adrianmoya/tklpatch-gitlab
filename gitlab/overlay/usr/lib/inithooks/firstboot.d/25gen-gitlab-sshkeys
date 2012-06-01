@@ -5,6 +5,7 @@
 
 echo "* Regenerating SSH cryptographic keys for gitlab user"
 
+rm -f /home/gitlab/.ssh/id_rsa*
 sudo -H -u gitlab ssh-keygen -q -N '' -t rsa -f /home/gitlab/.ssh/id_rsa
 cp /home/gitlab/.ssh/id_rsa.pub /home/git/gitlab.pub
 chmod 777 /home/git/gitlab.pub

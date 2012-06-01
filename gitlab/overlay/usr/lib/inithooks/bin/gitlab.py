@@ -56,8 +56,8 @@ def main():
     hashpass = bcrypt.encrypt(password, rounds=10)
 
     m = MySQL()
-    m.execute('UPDATE gitlab.users SET email=\"%s\" WHERE name=\"Administrator\";' % email)
-    m.execute('UPDATE gitlab.users SET encrypted_password=\"%s\" WHERE name=\"Administrator\";' % hashpass)
+    m.execute('UPDATE gitlabhq_production.users SET email=\"%s\" WHERE name=\"Administrator\";' % email)
+    m.execute('UPDATE gitlabhq_production.users SET encrypted_password=\"%s\" WHERE name=\"Administrator\";' % hashpass)
 
 if __name__ == "__main__":
     main()
